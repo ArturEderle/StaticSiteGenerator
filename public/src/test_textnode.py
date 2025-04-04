@@ -61,7 +61,7 @@ class TestTextNode(unittest.TestCase):
         self.assertEqual(html_node.tag, "img")
         self.assertEqual(html_node.to_html(), "<img src=\"\" alt=\"\"></img>")
 
-    def test_split_nodes_delimiter(self):
+    def test_split_nodes_code_delimiter(self):
         node = TextNode("This is text with a `code block` word", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
         expected_new_nodes = [
@@ -69,6 +69,29 @@ class TestTextNode(unittest.TestCase):
             TextNode("code block", TextType.CODE),
             TextNode(" word", TextType.TEXT),
         ]
+        self.assertEqual(isinstance(new_nodes, list), True)
+        self.assertEqual(new_nodes, expected_new_nodes)
+
+    def test_split_nodes_bold_delimiter(self):
+        node = TextNode("This is text with a **bold** word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        expected_new_nodes = [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" word", TextType.TEXT),
+        ]
+        self.assertEqual(isinstance(new_nodes, list), True)
+        self.assertEqual(new_nodes, expected_new_nodes)
+
+    def test_split_nodes_italic_delimiter(self):
+        node = TextNode("This is text with a _italic_ word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "_", TextType.ITALIC)
+        expected_new_nodes = [
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word", TextType.TEXT),
+        ]
+        self.assertEqual(isinstance(new_nodes, list), True)
         self.assertEqual(new_nodes, expected_new_nodes)
 
 if __name__ == "__main__":
