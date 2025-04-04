@@ -19,10 +19,6 @@ def text_node_to_html_node(node):
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     # implement later
-    # return List of TextNode-Objects that split with delimiter
-    tmp_list = []
-    for node in old_nodes:
-        tmp_list = node.text.split(delimiter)
 
 
     raise NotImplementedError()
