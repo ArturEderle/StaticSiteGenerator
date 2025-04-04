@@ -1,5 +1,4 @@
 from enum import Enum
-from unittest import case
 
 from public.src.htmlnode import LeafNode, HTMLNode
 
@@ -11,22 +10,6 @@ class TextType(Enum):
     LINK = "link"
     IMAGE = "image"
     TEXT = "text"
-
-def text_node_to_html_node(node):
-    match node.text_type:
-        case TextType.BOLD:
-            return LeafNode("b", node.text)
-        case TextType.ITALIC:
-            return LeafNode("i", node.text)
-        case TextType.CODE:
-            return LeafNode("code", node.text)
-        case TextType.LINK:
-            return LeafNode("a", node.text,{"href": ""})
-        case TextType.IMAGE:
-            return LeafNode("img", "", {"src": "", "alt": ""})
-        case TextType.TEXT:
-            return LeafNode(None, node.text)
-    raise Exception("Unknown TextType")
 
 class TextNode:
 
