@@ -1,5 +1,5 @@
-from public.src.htmlnode import LeafNode
-from public.src.textnode import TextType
+from htmlnode import LeafNode
+from textnode import TextType
 
 def text_node_to_html_node(node):
     match node.text_type:
@@ -19,4 +19,10 @@ def text_node_to_html_node(node):
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     # implement later
+    # return List of TextNode-Objects that split with delimiter
+    tmp_list = []
+    for node in old_nodes:
+        tmp_list = node.text.split(delimiter)
+
+
     raise NotImplementedError()

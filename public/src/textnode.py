@@ -1,8 +1,5 @@
 from enum import Enum
 
-from public.src.htmlnode import LeafNode, HTMLNode
-
-
 class TextType(Enum):
     BOLD = "bold"
     ITALIC = "italic"
