@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 from utility.copy_static_dir import copy_contents
 from src.gencontent import generate_pages_recursive
 
@@ -11,6 +12,9 @@ template_path = os.path.abspath(os.path.join(base_dir, '..', 'public/template.ht
 
 
 def main():
+    basepath = "/"
+    if sys.argv[1] is not None:
+        basepath = sys.argv[1]
 
     if not os.path.exists(dir_path_static):
         raise Exception(f"Source {dir_path_static} doesn't exists")
@@ -21,7 +25,7 @@ def main():
 
     copy_contents(dir_path_static, dir_path_public)
     print("Generating content...")
-    generate_pages_recursive(dir_path_content, template_path, dir_path_public)
+    generate_pages_recursive(dir_path_content, template_path, dir_path_public, basepath)
 
 if __name__ == "__main__":
     main()
