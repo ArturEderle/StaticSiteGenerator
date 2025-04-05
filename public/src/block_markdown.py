@@ -1,6 +1,7 @@
 from enum import Enum
-from constants import *
-import re
+from inline_markdown_util import text_to_textnodes, text_node_to_html_node
+from htmlnode import ParentNode
+from textnode import TextNode, TextType
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -10,45 +11,158 @@ class BlockType(Enum):
     UNORDERED_LIST = "unordered_list"
     ORDERED_LIST = "ordered_list"
 
-def is_block(pattern, markdown_block):
-    match = re.match(pattern, markdown_block, re.DOTALL)
-    return match
+def markdown_to_blocks(markdown):
+    blocks = markdown.split("\n\n")
+    filtered_blocks = []
+    for block in blocks:
+        if block == "":
+            continue
+        block = block.strip().replace("  ", "")
+        filtered_blocks.append(block)
+    return filtered_blocks
 
-def block_to_block_type(markdown_block):
-    if is_block(MD_HEADING_PATTERN, markdown_block):
+def block_to_block_type(block):
+    lines = block.split("\n")
+
+    if block.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
         return BlockType.HEADING
-    if is_block(MD_CODE_PATTERN, markdown_block):
+    if len(lines) > 1 and lines[0].startswith("```") and lines[-1].startswith("```"):
         return BlockType.CODE
-    if is_block(MD_QUOTE_PATTERN, markdown_block):
+    if block.startswith(">"):
+        for line in lines:
+            if not line.startswith(">"):
+                return BlockType.PARAGRAPH
         return BlockType.QUOTE
-    if is_block(MD_UNORDERED_LIST_PATTERN, markdown_block):
+    if block.startswith("- "):
+        for line in lines:
+            if not line.startswith("- "):
+                return BlockType.PARAGRAPH
         return BlockType.UNORDERED_LIST
-    if is_block(MD_ORDERED_LIST_PATTERN, markdown_block):
+    if block.startswith("1. "):
+        i = 1
+        for line in lines:
+            if not line.startswith(f"{i}. "):
+                return BlockType.PARAGRAPH
+            i += 1
         return BlockType.ORDERED_LIST
     return BlockType.PARAGRAPH
 
-# tried my best here
-def markdown_to_blocks(markdown):
-    result = []
-    blocks_list = list(map(lambda block: block.strip() , markdown.split("\n")))
-    # if block_tracker == 1 -> open block and block_tracker == 2 -> block closed
-    block_tracker = 0
-    # save paragraph
-    paragraph = ""
-    # parts of paragraph counter
-    parts_c = 0
-    for paragraph_part in blocks_list:
-        if len(paragraph_part) == 0:
-            block_tracker += 1
-            parts_c = 0
-            if block_tracker == 2:
-                result.append(paragraph)
-                paragraph = ""
-                block_tracker = 1
-            continue
-        if parts_c >= 1:
-            paragraph += '\n' + paragraph_part
+def markdown_to_html_node(markdown):
+    markdown_blocks = markdown_to_blocks(markdown)
+    children = []
+    for block in markdown_blocks:
+        html_node = block_to_html_node(block)
+        children.append(html_node)
+    return ParentNode("div", children, None)
+
+def block_to_html_node(block):
+    block_type = block_to_block_type(block)
+    if block_type == BlockType.PARAGRAPH:
+        return paragraph_to_html_node(block)
+    if block_type == BlockType.HEADING:
+        return heading_to_html_node(block)
+    if block_type == BlockType.CODE:
+        return code_to_html_node(block)
+    if block_type == BlockType.ORDERED_LIST:
+        return olist_to_html_node(block)
+    if block_type == BlockType.UNORDERED_LIST:
+        return ulist_to_html_node(block)
+    if block_type == BlockType.QUOTE:
+        return quote_to_html_node(block)
+    raise ValueError("invalid block type")
+
+
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    children = []
+    for text_node in text_nodes:
+        html_node = text_node_to_html_node(text_node)
+        children.append(html_node)
+    return children
+
+
+def paragraph_to_html_node(block):
+    lines = block.split("\n")
+    paragraph = " ".join(lines)
+    children = text_to_children(paragraph)
+    return ParentNode("p", children)
+
+
+def heading_to_html_node(block):
+    level = 0
+    for char in block:
+        if char == "#":
+            level += 1
         else:
-            paragraph += paragraph_part
-        parts_c += 1
-    return result
+            break
+    if level + 1 >= len(block):
+        raise ValueError(f"invalid heading level: {level}")
+    text = block[level + 1 :]
+    children = text_to_children(text)
+    return ParentNode(f"h{level}", children)
+
+
+def code_to_html_node(block):
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("invalid code block")
+    text = block[4:-3]
+    raw_text_node = TextNode(text, TextType.TEXT)
+    child = text_node_to_html_node(raw_text_node)
+    code = ParentNode("code", [child])
+    return ParentNode("pre", [code])
+
+
+def olist_to_html_node(block):
+    items = block.split("\n")
+    html_items = []
+    for item in items:
+        text = item[3:]
+        children = text_to_children(text)
+        html_items.append(ParentNode("li", children))
+    return ParentNode("ol", html_items)
+
+
+def ulist_to_html_node(block):
+    items = block.split("\n")
+    html_items = []
+    for item in items:
+        text = item[2:]
+        children = text_to_children(text)
+        html_items.append(ParentNode("li", children))
+    return ParentNode("ul", html_items)
+
+
+def quote_to_html_node(block):
+    lines = block.split("\n")
+    new_lines = []
+    for line in lines:
+        if not line.startswith(">"):
+            raise ValueError("invalid quote block")
+        new_lines.append(line.lstrip(">").strip())
+    content = " ".join(new_lines)
+    children = text_to_children(content)
+    return ParentNode("blockquote", children)
+
+
+def main():
+    md = """
+        This is **bolded** paragraph
+
+
+
+
+        This is another paragraph with _italic_ text and `code` here
+        This is the same paragraph on a new line
+
+        - This is a list
+        - with items
+        """
+    blocks = markdown_to_blocks(md)
+    print(blocks)
+
+if __name__ == "__main__":
+    main()
+
+
+
+
