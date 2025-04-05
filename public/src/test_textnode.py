@@ -1,6 +1,6 @@
 import unittest
 
-from text_nodes_helper import *
+from inline_markdown_util import *
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
