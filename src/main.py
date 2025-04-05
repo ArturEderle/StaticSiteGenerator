@@ -4,15 +4,15 @@ import sys
 from utility.copy_static_dir import copy_contents
 from src.gencontent import generate_pages_recursive
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-dir_path_static = os.path.abspath(os.path.join(base_dir, '..', 'static'))
-dir_path_public = os.path.abspath(os.path.join(base_dir, '..', 'docs'))
-dir_path_content = os.path.abspath(os.path.join(base_dir, '..', 'content'))
-template_path = os.path.abspath(os.path.join(base_dir, '..', 'docs/template.html'))
+dir_path_static = "./static"
+dir_path_public = "./docs"
+dir_path_content = "./content"
+template_path = "./template.html"
+default_basepath = "/"
 
 
 def main():
-    basepath = "/"
+    basepath = default_basepath
     if len(sys.argv) > 1:
         basepath = sys.argv[1]
 
