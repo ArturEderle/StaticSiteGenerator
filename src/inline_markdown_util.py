@@ -14,8 +14,8 @@ def text_node_to_html_node(node):
             props = "" if node.url is None else node.url
             return LeafNode("a", node.text,{"href": props})
         case TextType.IMAGE:
-            props = "" if node.url is None else node.url
-            url = "" if node.text is None else node.text
+            url = "" if node.url is None else node.url
+            props = "" if node.text is None else node.text
             return LeafNode("img", "", {"src": url, "alt": props})
         case TextType.TEXT:
             return LeafNode(None, node.text)

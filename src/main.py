@@ -1,29 +1,27 @@
-import os.path
-
-from textnode import TextNode
 import os
 import shutil
+from utility.copy_static_dir import copy_contents
+from src.gencontent import generate_pages_recursive
 
-def copy_contents(src, dst):
-    if not os.path.exists(src):
-        raise Exception(f"Source {src} doesn't exists")
+base_dir = os.path.dirname(os.path.abspath(__file__))
+dir_path_static = os.path.abspath(os.path.join(base_dir, '..', 'static'))
+dir_path_public = os.path.abspath(os.path.join(base_dir, '..', 'public'))
+dir_path_content = os.path.abspath(os.path.join(base_dir, '..', 'content'))
+template_path = os.path.abspath(os.path.join(base_dir, '..', 'public/template.html'))
 
-    if os.path.exists(dst):
-        print(f"Destination {dst} already exists - REMOVING")
-        shutil.rmtree(dst)
-    os.mkdir(dst)
-    src_contents = os.listdir(src)
-
-    for item in src_contents:
-        src_path = os.path.join(src, item)
-        dst_path = os.path.join(dst, item)
-        if os.path.isfile(src_path):
-            shutil.copy(src_path, dst_path)
-        else:
-            copy_contents(src_path, dst_path)
 
 def main():
-    print(copy_contents('../static', '../public'))
+
+    if not os.path.exists(dir_path_static):
+        raise Exception(f"Source {dir_path_static} doesn't exists")
+
+    if os.path.exists(dir_path_public):
+        print(f"Destination {dir_path_public} already exists - REMOVING")
+        shutil.rmtree(dir_path_public)
+
+    copy_contents(dir_path_static, dir_path_public)
+    print("Generating content...")
+    generate_pages_recursive(dir_path_content, template_path, dir_path_public)
 
 if __name__ == "__main__":
     main()
